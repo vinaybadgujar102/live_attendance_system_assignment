@@ -1,6 +1,18 @@
-import { Schema, model } from "mongoose";
+import { Schema, model, Document } from "mongoose";
 
-const userSchema = new Schema(
+export enum UserRoles {
+  TEACHER = "teacher",
+  STUDENT = "student",
+}
+
+export interface IUser extends Document {
+  name: string;
+  email: string;
+  password: string;
+  role: UserRoles;
+}
+
+const userSchema = new Schema<IUser>(
   {
     name: {
       type: String,
@@ -16,12 +28,12 @@ const userSchema = new Schema(
       type: String,
       required: true,
     },
-    roles: {
+    role: {
       type: String,
-      enum: ["teacher", "student"],
+      enum: Object.values(UserRoles),
     },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
-export const User = model("User", userSchema);
+export const User = model<IUser>("User", userSchema);
