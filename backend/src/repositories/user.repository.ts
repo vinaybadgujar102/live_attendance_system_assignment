@@ -1,15 +1,22 @@
-import { User, type IUser } from "../models/User.model";
+import { User, UserRoles, type IUser } from "../models/User.model";
+
+export type UserPersistanceInput = {
+  email: string;
+  password: string;
+  role: UserRoles;
+  name: string;
+};
 
 export interface IUserRepository {
-  create(user: Partial<IUser>): Promise<IUser>;
+  create(user: UserPersistanceInput): Promise<IUser>;
   findById(id: string): Promise<IUser | null>;
   findByEmail(email: string): Promise<IUser | null>;
-  update(id: string, user: IUser): Promise<IUser | null>;
+  update(id: string, user: UserPersistanceInput): Promise<IUser | null>;
   delete(id: string): Promise<void>;
 }
 
 export class UserRepository implements IUserRepository {
-  async create(user: Partial<IUser>): Promise<IUser> {
+  async create(user: UserPersistanceInput): Promise<IUser> {
     const newUser = await User.create(user);
     return newUser;
   }
@@ -24,7 +31,7 @@ export class UserRepository implements IUserRepository {
     return user;
   }
 
-  async update(id: string, user: IUser): Promise<IUser | null> {
+  async update(id: string, user: UserPersistanceInput): Promise<IUser | null> {
     const updatedUser = await User.findByIdAndUpdate(
       id,
       { ...user },
