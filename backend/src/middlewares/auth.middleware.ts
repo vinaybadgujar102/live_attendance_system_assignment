@@ -2,6 +2,7 @@ import type { NextFunction, Request, Response } from "express";
 import { errorResponse } from "../../utils/app.response";
 import { StatusCodes } from "http-status-codes";
 import { verifyToken, type AuthPayload } from "../../utils/token.utils";
+import { UserRoles } from "../models/User.model";
 
 declare global {
   namespace Express {
@@ -39,3 +40,20 @@ export const authMiddleware = (
     );
   }
 };
+
+export function isTeacher(req: Request, res: Response, next: NextFunction) {
+  try {
+    const role = req.user?.role;
+    if (role === UserRoles.TEACHER) {
+      next();
+    } else {
+      throw new Error();
+    }
+  } catch (error) {
+    return errorResponse(
+      res,
+      StatusCodes.FORBIDDEN,
+      "Forbidden, teacher access required",
+    );
+  }
+}
