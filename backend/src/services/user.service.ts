@@ -1,7 +1,8 @@
-import { ConflictError } from "../../utils/app.error";
+import { ConflictError, UnauthorizedError } from "../../utils/app.error";
 import type { IUser, UserRoles } from "../models/User.model";
 import type { IUserRepository } from "../repositories/user.repository";
 import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
 
 type CreateUserInput = {
   email: string;
@@ -10,10 +11,15 @@ type CreateUserInput = {
   name: string;
 };
 
+type LoginUserInput = {
+  email: string;
+  password: string;
+};
+
 export interface IUserService {
-  createUser(user: Partial<IUser>): Promise<IUser>;
+  createUser(user: CreateUserInput): Promise<IUser>;
   // findUserById(id: string): Promise<IUser | null>;
-  // findUserByEmail(email: string): Promise<IUser | null>;
+  login(userDetails: LoginUserInput): Promise<string>;
   // updateUser(id: string, user: IUser): Promise<IUser | null>;
   // deleteUser(id: string): Promise<void>;
 }
@@ -37,5 +43,20 @@ export class UserService implements IUserService {
       ...user,
       password: hashedPassord,
     });
+  }
+
+  async login({ email, password }: LoginUserInput): Promise<string> {
+    const user = await this.userRepository.findByEmail(email);
+    console.log(user);
+    if (!user) {
+      throw new UnauthorizedError("Invalid email or password");
+    }
+    const doesPasswordMatch = await bcrypt.compare(password, user.password);
+    if (!doesPasswordMatch) {
+      throw new UnauthorizedError("Invalid email or password");
+    }
+
+    const token = jwt.sign({ userId: user._id, role: user.role }, "secret");
+    return token;
   }
 }

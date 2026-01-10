@@ -7,3 +7,8 @@ export const signupSchema = z.object({
   password: z.string().min(6, "Pass must be of min 6 characters"),
   role: z.enum(UserRoles),
 });
+
+export const loginSchema = z.object({
+  email: z.email(),
+  password: z.string(),
+});
