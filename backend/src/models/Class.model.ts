@@ -1,6 +1,12 @@
 import { Schema, model } from "mongoose";
 
-const classSchema = new Schema(
+export interface IClass {
+  className: string;
+  teacherId: Schema.Types.ObjectId | string;
+  studentIds: Schema.Types.ObjectId[] | string[];
+}
+
+const classSchema = new Schema<IClass>(
   {
     className: {
       type: String,
@@ -18,7 +24,7 @@ const classSchema = new Schema(
       },
     ],
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 export const Class = model("Class", classSchema);
