@@ -32,7 +32,7 @@ export class UnauthorizedError implements AppError {
   name: string;
 
   constructor(message: string) {
-    this.statusCode = StatusCodes.UNAUTHORIZED;
+    this.statusCode = StatusCodes.BAD_REQUEST;
     this.message = message;
     this.name = "UnauthorizedError";
   }
