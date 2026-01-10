@@ -36,4 +36,25 @@ export const AuthController = {
       }
     }
   },
+
+  async getMe(req: Request, res: Response) {
+    try {
+      const user = await userService.getCurrentUser(req.user?.userId as string);
+      if (!user) {
+        return errorResponse(res, StatusCodes.NOT_FOUND, "User not found");
+      }
+      return successResponse(res, StatusCodes.OK, {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+      });
+    } catch (error) {
+      return errorResponse(
+        res,
+        StatusCodes.INTERNAL_SERVER_ERROR,
+        "Something went wrong",
+      );
+    }
+  },
 };
