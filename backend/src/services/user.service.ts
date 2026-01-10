@@ -1,4 +1,5 @@
 import { ConflictError, UnauthorizedError } from "../../utils/app.error";
+import { generateToken } from "../../utils/token.utils";
 import type { IUser, UserRoles } from "../models/User.model";
 import type { IUserRepository } from "../repositories/user.repository";
 import bcrypt from "bcrypt";
@@ -18,6 +19,7 @@ type LoginUserInput = {
 
 export interface IUserService {
   createUser(user: CreateUserInput): Promise<IUser>;
+  getCurrentUser(token: string): Promise<IUser | null>;
   // findUserById(id: string): Promise<IUser | null>;
   login(userDetails: LoginUserInput): Promise<string>;
   // updateUser(id: string, user: IUser): Promise<IUser | null>;
@@ -47,7 +49,6 @@ export class UserService implements IUserService {
 
   async login({ email, password }: LoginUserInput): Promise<string> {
     const user = await this.userRepository.findByEmail(email);
-    console.log(user);
     if (!user) {
       throw new UnauthorizedError("Invalid email or password");
     }
@@ -56,7 +57,15 @@ export class UserService implements IUserService {
       throw new UnauthorizedError("Invalid email or password");
     }
 
-    const token = jwt.sign({ userId: user._id, role: user.role }, "secret");
+    const token = generateToken({
+      userId: user._id.toString(),
+      role: user.role,
+    });
     return token;
+  }
+
+  async getCurrentUser(userId: string): Promise<IUser | null> {
+    const user = this.userRepository.findById(userId);
+    return user;
   }
 }
