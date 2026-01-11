@@ -1,6 +1,6 @@
 import { StatusCodes } from "http-status-codes";
 
-interface AppError extends Error {
+export interface AppError extends Error {
   statusCode: number;
 }
 
@@ -35,5 +35,29 @@ export class UnauthorizedError implements AppError {
     this.statusCode = StatusCodes.BAD_REQUEST;
     this.message = message;
     this.name = "UnauthorizedError";
+  }
+}
+
+export class ForbiddenError implements AppError {
+  message: string;
+  statusCode: number;
+  name: string;
+
+  constructor(message: string) {
+    this.message = message;
+    this.statusCode = StatusCodes.FORBIDDEN;
+    this.name = "ForbiddenError";
+  }
+}
+
+export class NotFoundError implements AppError {
+  message: string;
+  statusCode: number;
+  name: string;
+
+  constructor(message: string) {
+    this.message = message;
+    this.statusCode = StatusCodes.NOT_FOUND;
+    this.name = "NotFoundError";
   }
 }

@@ -10,7 +10,6 @@ const classSchema = new Schema<IClass>(
   {
     className: {
       type: String,
-      unique: true,
       required: true,
     },
     teacherId: {

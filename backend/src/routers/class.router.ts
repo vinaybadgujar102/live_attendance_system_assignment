@@ -1,6 +1,9 @@
 import { Router } from "express";
 import { validateRequestBody } from "../../validators";
-import { createClassSchema } from "../../validators/class.validator";
+import {
+  addStudentToClassSchema,
+  createClassSchema,
+} from "../../validators/class.validator";
 import { authMiddleware, isTeacher } from "../middlewares/auth.middleware";
 import { classController } from "../controllers/class.controller";
 
@@ -12,6 +15,14 @@ classRouter.post(
   isTeacher,
   validateRequestBody(createClassSchema),
   classController.createClass,
+);
+
+classRouter.post(
+  "/:id/add-student",
+  authMiddleware,
+  isTeacher,
+  validateRequestBody(addStudentToClassSchema),
+  classController.addStudentToClass,
 );
 
 export default classRouter;
