@@ -1,4 +1,8 @@
-import { ConflictError, UnauthorizedError } from "../../utils/app.error";
+import {
+  ConflictError,
+  NotFoundError,
+  UnauthorizedError,
+} from "../../utils/app.error";
 import { generateToken } from "../../utils/token.utils";
 import type { IUser, UserRoles } from "../models/User.model";
 import type { IUserRepository } from "../repositories/user.repository";
@@ -65,7 +69,7 @@ export class UserService implements IUserService {
   }
 
   async getCurrentUser(userId: string): Promise<IUser | null> {
-    const user = this.userRepository.findById(userId);
+    const user = await this.userRepository.findById(userId);
     return user;
   }
 }
