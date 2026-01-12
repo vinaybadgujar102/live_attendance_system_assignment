@@ -1,9 +1,18 @@
-import mongoose from "mongoose";
-import type { IClass } from "../models/Class.model";
+import { Types } from "mongoose";
+import { type IClass } from "../models/Class.model";
 import { ClassRepository } from "../repositories/class.repository";
 import { ForbiddenError, NotFoundError } from "../../utils/app.error";
 import type { UserRepository } from "../repositories/user.repository";
-import { User } from "../models/User.model";
+import { UserRoles } from "../models/User.model";
+
+interface IClassWithPopulatedStudents extends Omit<IClass, "studentIds"> {
+  _id: Types.ObjectId;
+  studentIds: {
+    _id: Types.ObjectId;
+    name: string;
+    email: string;
+  }[];
+}
 
 type CreateClassInput = {
   teacherId: string;
@@ -20,6 +29,42 @@ export class ClassService {
   ) {
     this.classRepository = classRepository;
     this.userRepository = userRepository;
+  }
+
+  async getClassById(
+    accessorId: string,
+    accessorRole: UserRoles,
+    classId: string,
+  ) {
+    const accessedClass = (await this.classRepository.findClassById(classId, {
+      populate: {
+        path: "studentIds",
+        select: "_id name email",
+      },
+    })) as unknown as IClassWithPopulatedStudents;
+
+    if (!accessedClass) {
+      throw new NotFoundError("Class not found");
+    }
+
+    //check if teacher owns the class
+    if (
+      accessorRole === "teacher" &&
+      accessedClass.teacherId.toString() !== accessorId
+    ) {
+      throw new ForbiddenError("Forbidden, not class teacher");
+    }
+
+    //check if student enrolled in class
+    const studentEnrolled = accessedClass.studentIds;
+    const isAccessorStudentPresentInTheClass = studentEnrolled.find(
+      (student) => student._id.toString() === accessorId,
+    );
+    if (accessorRole === "student" && !isAccessorStudentPresentInTheClass) {
+      throw new ForbiddenError("Forbidden, not class teacher");
+    }
+
+    return accessedClass;
   }
 
   async createClass(data: CreateClassInput) {

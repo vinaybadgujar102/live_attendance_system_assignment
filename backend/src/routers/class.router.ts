@@ -25,4 +25,6 @@ classRouter.post(
   classController.addStudentToClass,
 );
 
+classRouter.get("/:id", authMiddleware, classController.getClassById);
+
 export default classRouter;
