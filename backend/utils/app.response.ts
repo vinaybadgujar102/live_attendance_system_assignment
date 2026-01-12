@@ -10,7 +10,9 @@ type ApiErrorResponse = {
   error: string;
 };
 
-export const successResponse = <T extends Record<string, unknown>>(
+export const successResponse = <
+  T extends Record<string, unknown> | Array<unknown>,
+>(
   res: Response,
   statusCode: number,
   data: T,

@@ -67,6 +67,10 @@ export class ClassService {
     return accessedClass;
   }
 
+  async getAllClasses() {
+    return await this.classRepository.getAllClass();
+  }
+
   async createClass(data: CreateClassInput) {
     const newClassData: IClass = {
       className: data.className,
