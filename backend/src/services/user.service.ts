@@ -4,7 +4,7 @@ import {
   UnauthorizedError,
 } from "../../utils/app.error";
 import { generateToken } from "../../utils/token.utils";
-import type { IUser, UserRoles } from "../models/User.model";
+import { UserRoles, type IUser } from "../models/User.model";
 import type { IUserRepository } from "../repositories/user.repository";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
@@ -71,5 +71,15 @@ export class UserService implements IUserService {
   async getCurrentUser(userId: string): Promise<IUser | null> {
     const user = await this.userRepository.findById(userId);
     return user;
+  }
+
+  async getAllStudents() {
+    const students = await this.userRepository.findByRole(UserRoles.STUDENT, {
+      select: "_id name email",
+    });
+    if (!students) {
+      throw new NotFoundError("Students not found");
+    }
+    return students;
   }
 }

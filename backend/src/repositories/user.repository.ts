@@ -1,4 +1,6 @@
+import type { HydratedDocument } from "mongoose";
 import { User, UserRoles, type IUser } from "../models/User.model";
+import type { FindOptions } from "./class.repository";
 
 export type UserPersistanceInput = {
   email: string;
@@ -13,9 +15,23 @@ export interface IUserRepository {
   findByEmail(email: string): Promise<IUser | null>;
   update(id: string, user: UserPersistanceInput): Promise<IUser | null>;
   delete(id: string): Promise<void>;
+  findByRole(
+    role: UserRoles,
+    options?: FindOptions,
+  ): Promise<HydratedDocument<IUser>[] | null>;
 }
 
 export class UserRepository implements IUserRepository {
+  async findByRole(role: UserRoles, options?: FindOptions) {
+    const users = User.find({ role });
+    if (options?.populate) {
+      users.populate(options.populate);
+    }
+    if (options?.select) {
+      users.select(options.select);
+    }
+    return await users;
+  }
   async create(user: UserPersistanceInput): Promise<IUser> {
     const newUser = await User.create(user);
     return newUser;

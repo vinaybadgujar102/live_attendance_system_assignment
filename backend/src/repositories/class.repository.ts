@@ -1,8 +1,9 @@
-import type { HydratedDocument } from "mongoose";
+import type { HydratedDocument, PopulateOptions } from "mongoose";
 import { Class, type IClass } from "../models/Class.model";
 
 export interface FindOptions {
   populate?: PopulateOptions | PopulateOptions[];
+  select?: string | string[];
 }
 
 type ClassPersistanceInput = {
@@ -31,6 +32,14 @@ export class ClassRepository implements IClassRepoistory {
       query?.populate(options.populate);
     }
 
+    return await query.lean(true);
+  }
+
+  async getAllClass(options?: FindOptions) {
+    let query = Class.find();
+    if (options?.populate) {
+      query?.populate(options.populate);
+    }
     return await query;
   }
 
