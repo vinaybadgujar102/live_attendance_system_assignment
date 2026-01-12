@@ -12,6 +12,28 @@ const classService = new ClassService(
 );
 
 export const classController = {
+  async getClassById(req: Request, res: Response) {
+    try {
+      const { userId, role } = req.user!;
+      const classId = req.params.id;
+      const fetchedClass = await classService.getClassById(
+        userId,
+        role,
+        classId,
+      );
+
+      return successResponse(res, StatusCodes.OK, {
+        _id: fetchedClass._id,
+        className: fetchedClass.className,
+        students: fetchedClass.studentIds,
+      });
+    } catch (error) {
+      if (error instanceof ForbiddenError || error instanceof NotFoundError) {
+        return errorResponse(res, error.statusCode, error.message);
+      }
+    }
+  },
+
   async createClass(req: Request, res: Response) {
     const { className } = req.body;
     const { userId: teacherId } = req.user!;
