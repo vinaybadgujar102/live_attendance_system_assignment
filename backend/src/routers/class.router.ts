@@ -8,7 +8,6 @@ import { authMiddleware, isTeacher } from "../middlewares/auth.middleware";
 import { classController } from "../controllers/class.controller";
 
 const classRouter = Router();
-
 classRouter.post(
   "/",
   authMiddleware,
@@ -26,5 +25,7 @@ classRouter.post(
 );
 
 classRouter.get("/:id", authMiddleware, classController.getClassById);
+
+// classRouter.get("/:id/my-attendance", authMiddleware, isStudent, )
 
 export default classRouter;
