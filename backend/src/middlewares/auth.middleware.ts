@@ -3,6 +3,7 @@ import { errorResponse } from "../../utils/app.response";
 import { StatusCodes } from "http-status-codes";
 import { verifyToken, type AuthPayload } from "../../utils/token.utils";
 import { UserRoles } from "../models/User.model";
+import { ForbiddenError } from "../../utils/app.error";
 
 declare global {
   namespace Express {
@@ -47,13 +48,26 @@ export function isTeacher(req: Request, res: Response, next: NextFunction) {
     if (role === UserRoles.TEACHER) {
       next();
     } else {
-      throw new Error();
+      throw new ForbiddenError("Forbidden, teacher access required");
     }
   } catch (error) {
-    return errorResponse(
-      res,
-      StatusCodes.FORBIDDEN,
-      "Forbidden, teacher access required",
-    );
+    if (error instanceof ForbiddenError) {
+      return errorResponse(res, error.statusCode, error.message);
+    }
+  }
+}
+
+export function isStudent(req: Request, res: Response, next: NextFunction) {
+  try {
+    const role = req.user?.role;
+    if (role === UserRoles.STUDENT) {
+      next();
+    } else {
+      throw new ForbiddenError("Forbidden, student access required");
+    }
+  } catch (error) {
+    if (error instanceof ForbiddenError) {
+      return errorResponse(res, error.statusCode, error.message);
+    }
   }
 }
