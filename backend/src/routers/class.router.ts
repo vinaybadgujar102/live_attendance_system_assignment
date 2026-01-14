@@ -4,7 +4,11 @@ import {
   addStudentToClassSchema,
   createClassSchema,
 } from "../../validators/class.validator";
-import { authMiddleware, isTeacher } from "../middlewares/auth.middleware";
+import {
+  authMiddleware,
+  isStudent,
+  isTeacher,
+} from "../middlewares/auth.middleware";
 import { classController } from "../controllers/class.controller";
 
 const classRouter = Router();
@@ -26,6 +30,11 @@ classRouter.post(
 
 classRouter.get("/:id", authMiddleware, classController.getClassById);
 
-// classRouter.get("/:id/my-attendance", authMiddleware, isStudent, )
+classRouter.get(
+  "/:id/my-attendance",
+  authMiddleware,
+  isStudent,
+  classController.getMyAttendance,
+);
 
 export default classRouter;

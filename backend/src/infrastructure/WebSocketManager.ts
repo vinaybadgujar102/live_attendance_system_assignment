@@ -4,6 +4,8 @@ import { verifyToken } from "../../utils/token.utils";
 import { activeSession } from "./attendanceState";
 import type { WebSocket } from "ws";
 import { UserRoles } from "../models/User.model";
+import { Attendance } from "../models/Attendance.model";
+import { Class } from "../models/Class.model";
 
 type AttendanceMarkedPayload = {
   studentId: string;
@@ -91,7 +93,40 @@ function handleTodaySummary(ws: WebSocket, wss: WebSocketServer) {
   });
 }
 
-function handleMyAttendance(ws: WebSocket, wss: WebSocketServer) {
+function async handleDone(ws: WebSocket) {
+  if (!checkRole(ws, UserRoles.STUDENT)) {
+    return;
+  }
+  if (!activeSession) {
+    ws.send(
+      JSON.stringify({
+        event: "ERROR",
+        data: { message: "No active attendance session" },
+      }),
+    );
+    return;
+  }
+  const classId = activeSession.classId;
+  const currentClass = await Class.findById(classId).populate("studentIds");
+  const students = currentClass?.studentIds!;
+  for (const student of students) {
+    if (!activeSession.attendance[student._id]) {
+      activeSession.attendance[student._id] = "absent"
+    }
+  }
+  await Attendance.create(activeSession)
+  const totalPresent = Object.values(activeSession.attendance).filter(
+    (ele) => ele === "present",
+  ).length;
+  const totalAbsent = Object.values(activeSession.attendance).filter(
+    (ele) => ele === "absent",
+  ).length;
+  const total = totalAbsent + totalPresent;
+  activeSession = null;
+
+}
+
+function handleMyAttendance(ws: WebSocket) {
   if (!checkRole(ws, UserRoles.STUDENT)) {
     return;
   }

@@ -5,6 +5,8 @@ import { errorResponse, successResponse } from "../../utils/app.response";
 import { StatusCodes } from "http-status-codes";
 import { ForbiddenError, NotFoundError } from "../../utils/app.error";
 import { UserRepository } from "../repositories/user.repository";
+import { Attendance } from "../models/Attendance.model";
+import { Class } from "../models/Class.model";
 
 const classService = new ClassService(
   new ClassRepository(),
@@ -63,6 +65,41 @@ export const classController = {
         className: updatedClass.className,
         teacherId: updatedClass.teacherId,
         studentIds: updatedClass.studentIds,
+      });
+    } catch (error) {
+      if (error instanceof ForbiddenError || error instanceof NotFoundError) {
+        return errorResponse(res, error.statusCode, error.message);
+      }
+    }
+  },
+
+  async getMyAttendance(req: Request, res: Response) {
+    const classId = req.params.id;
+    const { userId } = req.user!;
+    try {
+      const accessedClass = await Class.findById(classId);
+      if (!accessedClass) {
+        throw new NotFoundError("Class not found");
+      }
+      const isStudentInClass = accessedClass.studentIds.find(
+        (studentId) => studentId.toString() === userId,
+      );
+      if (!isStudentInClass) {
+        throw new ForbiddenError("Forbidden, not enrolled in class");
+      }
+      const getAttendance = await Attendance.findOne({
+        classId,
+        studentId: userId,
+      });
+      if (!getAttendance) {
+        return successResponse(res, StatusCodes.OK, {
+          classId,
+          status: null,
+        });
+      }
+      return successResponse(res, StatusCodes.OK, {
+        classId,
+        status: getAttendance.status,
       });
     } catch (error) {
       if (error instanceof ForbiddenError || error instanceof NotFoundError) {
