@@ -7,10 +7,16 @@ import { ForbiddenError, NotFoundError } from "../../utils/app.error";
 import { UserRepository } from "../repositories/user.repository";
 import { Attendance } from "../models/Attendance.model";
 import { Class } from "../models/Class.model";
+import { AttendanceService } from "../services/attendance.service";
+import { AttendanceRepository } from "../repositories/attendance.repository";
 
 const classService = new ClassService(
   new ClassRepository(),
   new UserRepository(),
+);
+const attendanceService = new AttendanceService(
+  new ClassRepository(),
+  new AttendanceRepository(),
 );
 
 export const classController = {
@@ -77,20 +83,11 @@ export const classController = {
     const classId = req.params.id;
     const { userId } = req.user!;
     try {
-      const accessedClass = await Class.findById(classId);
-      if (!accessedClass) {
-        throw new NotFoundError("Class not found");
-      }
-      const isStudentInClass = accessedClass.studentIds.find(
-        (studentId) => studentId.toString() === userId,
-      );
-      if (!isStudentInClass) {
-        throw new ForbiddenError("Forbidden, not enrolled in class");
-      }
-      const getAttendance = await Attendance.findOne({
+      const getAttendance = await attendanceService.getMyAttendance(
         classId,
-        studentId: userId,
-      });
+        userId,
+      );
+
       if (!getAttendance) {
         return successResponse(res, StatusCodes.OK, {
           classId,
