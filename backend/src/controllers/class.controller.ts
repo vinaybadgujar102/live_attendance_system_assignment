@@ -5,10 +5,18 @@ import { errorResponse, successResponse } from "../../utils/app.response";
 import { StatusCodes } from "http-status-codes";
 import { ForbiddenError, NotFoundError } from "../../utils/app.error";
 import { UserRepository } from "../repositories/user.repository";
+import { Attendance } from "../models/Attendance.model";
+import { Class } from "../models/Class.model";
+import { AttendanceService } from "../services/attendance.service";
+import { AttendanceRepository } from "../repositories/attendance.repository";
 
 const classService = new ClassService(
   new ClassRepository(),
   new UserRepository(),
+);
+const attendanceService = new AttendanceService(
+  new ClassRepository(),
+  new AttendanceRepository(),
 );
 
 export const classController = {
@@ -63,6 +71,32 @@ export const classController = {
         className: updatedClass.className,
         teacherId: updatedClass.teacherId,
         studentIds: updatedClass.studentIds,
+      });
+    } catch (error) {
+      if (error instanceof ForbiddenError || error instanceof NotFoundError) {
+        return errorResponse(res, error.statusCode, error.message);
+      }
+    }
+  },
+
+  async getMyAttendance(req: Request, res: Response) {
+    const classId = req.params.id;
+    const { userId } = req.user!;
+    try {
+      const getAttendance = await attendanceService.getMyAttendance(
+        classId,
+        userId,
+      );
+
+      if (!getAttendance) {
+        return successResponse(res, StatusCodes.OK, {
+          classId,
+          status: null,
+        });
+      }
+      return successResponse(res, StatusCodes.OK, {
+        classId,
+        status: getAttendance.status,
       });
     } catch (error) {
       if (error instanceof ForbiddenError || error instanceof NotFoundError) {
